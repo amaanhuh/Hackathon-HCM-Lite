@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      try {
+        var origFetch = window.fetch;
+        var curFetch = origFetch ? origFetch.bind(window) : undefined;
+        Object.defineProperty(window, 'fetch', {
+          configurable: true,
+          enumerable: true,
+          get: function() { return curFetch; },
+          set: function(v) { curFetch = v; }
+        });
+        if (typeof Window !== 'undefined' && Window.prototype) {
+          Object.defineProperty(Window.prototype, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return curFetch; },
+            set: function(v) { curFetch = v; }
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — HCM Lite</title>
+  <meta name="description" content="Company-level human capital metrics, live attendance, and employee management.">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Mount -->
+    <nav id="sidebarMount"></nav>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+      <header id="topbarMount"></header>
+
+      <div class="content-area">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Executive Overview</h1>
+            <p class="page-description">Real-time attendance logs, workforce metrics, and pending requests.</p>
+          </div>
+          <div class="page-actions">
+            <button id="exportCsvBtn" class="btn btn-secondary btn-sm" title="Download attendance logs as CSV">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              <span>Export CSV</span>
+            </button>
+            <button id="newAnnouncementBtn" class="btn btn-secondary btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span>Announcement</span>
+            </button>
+            <a href="employees.html" class="btn btn-primary btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+              <span>+ Add Employee</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Total Employees</span>
+              <div class="metric-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="metricTotalEmployees">0</div>
+            <div class="metric-sub">Active registered accounts</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Present Today</span>
+              <div class="metric-icon-wrap" style="color: var(--success);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="metricPresentToday" style="color: var(--success);">0</div>
+            <div class="metric-sub">Checked in for work</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Late Arrivals</span>
+              <div class="metric-icon-wrap" style="color: var(--warning);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="metricLateToday" style="color: var(--warning);">0</div>
+            <div class="metric-sub">Past grace period cutoff</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">On Leave Today</span>
+              <div class="metric-icon-wrap" style="color: var(--info);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="metricOnLeaveToday" style="color: var(--info);">0</div>
+            <div class="metric-sub">Approved active leaves</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">Pending Approvals</span>
+              <div class="metric-icon-wrap" style="color: var(--warning);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="metricPendingLeaves">0</div>
+            <div class="metric-sub">Awaiting admin review</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Multi-Column Layout -->
+        <div class="dashboard-grid">
+          <!-- Left Column -->
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Today's Attendance Panel -->
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Today's Live Attendance</h2>
+                  <div class="panel-subtitle">Check-in timestamps and current shift duration.</div>
+                </div>
+              </div>
+              <div class="panel-body no-padding">
+                <div id="todayAttendanceEmpty" style="display: none;"></div>
+                <div class="table-responsive">
+                  <table class="data-table" id="todayAttendanceTable">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="todayAttendanceTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pending Leave Requests Panel -->
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">Pending Leave Requests</h2>
+                  <div class="panel-subtitle">Review employee leave applications and approve/reject.</div>
+                </div>
+                <a href="leaves.html" class="btn btn-secondary btn-sm">View All &rarr;</a>
+              </div>
+              <div class="panel-body no-padding">
+                <div id="pendingLeavesEmpty" style="display: none;"></div>
+                <div class="table-responsive">
+                  <table class="data-table" id="pendingLeavesTable">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th style="text-align: right;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pendingLeavesTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Attendance Breakdown Chart -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">Attendance Distribution</h2>
+              </div>
+              <div class="panel-body" style="height: 220px; position: relative;">
+                <canvas id="attendanceBreakdownChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Smart Helper Widget -->
+            <div class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">HR Smart Assistant</h2>
+                  <div class="panel-subtitle">Instant answers queried directly from live records.</div>
+                </div>
+              </div>
+              <div class="panel-body" id="adminHelperMount" style="padding: 16px;">
+                <!-- Smart Helper component mounted here -->
+              </div>
+            </div>
+
+            <!-- Announcements Panel -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">Company Announcements</h2>
+              </div>
+              <div class="panel-body no-padding" id="announcementsList">
+                <!-- Announcements rendered here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Announcement Modal -->
+  <div class="modal-backdrop" id="announcementModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">Post Company Announcement</div>
+        <button class="modal-close" onclick="document.getElementById('announcementModal').classList.remove('open')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="announcementForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="annTitle">Title <span class="req">*</span></label>
+            <input type="text" id="annTitle" class="form-control" placeholder="e.g. Schedule Update or Town Hall" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="annMessage">Message <span class="req">*</span></label>
+            <textarea id="annMessage" class="form-control" rows="4" placeholder="Write announcement details..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('announcementModal').classList.remove('open')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Publish Announcement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Approval / Rejection Modal -->
+  <div class="modal-backdrop" id="approvalModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="approvalModalTitle">Review Leave Request</div>
+        <button class="modal-close" onclick="closeApprovalModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="approvalModalDesc" style="font-size: 13.5px; color: var(--text-primary); margin-bottom: 16px;"></p>
+        <div class="form-group">
+          <label class="form-label" for="approvalCommentInput">Admin Comment (Optional)</label>
+          <input type="text" id="approvalCommentInput" class="form-control" placeholder="Add a note or reason...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeApprovalModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmApprovalActionBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Vanilla Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/leave.js"></script>
+  <script src="js/employees.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/payslip.js"></script>
+  <script src="js/helper.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminDashboard();
+    });
+  </script>
+</body>
+</html>

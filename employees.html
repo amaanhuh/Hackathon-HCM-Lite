@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      try {
+        var origFetch = window.fetch;
+        var curFetch = origFetch ? origFetch.bind(window) : undefined;
+        Object.defineProperty(window, 'fetch', {
+          configurable: true,
+          enumerable: true,
+          get: function() { return curFetch; },
+          set: function(v) { curFetch = v; }
+        });
+        if (typeof Window !== 'undefined' && Window.prototype) {
+          Object.defineProperty(Window.prototype, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return curFetch; },
+            set: function(v) { curFetch = v; }
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Management — HCM Lite</title>
+  <meta name="description" content="Manage employee profiles, departmental allocations, and credentials.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <nav id="sidebarMount"></nav>
+
+    <main class="main-wrapper">
+      <header id="topbarMount"></header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Employee Directory</h1>
+            <p class="page-description">Maintain organization rosters, roles, monthly compensations, and user logins.</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openAddEmployeeModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+              <span>+ Add Employee</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div class="search-box">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="employeeSearch" class="form-control" placeholder="Search by name, email, or employee ID...">
+          </div>
+          <div style="min-width: 180px;">
+            <select id="deptFilter" class="form-control">
+              <option value="">All Departments</option>
+            </select>
+          </div>
+          <div id="employeeCountBadge" style="font-size: 12.5px; color: var(--text-secondary); font-weight: 500; margin-left: auto;">
+            0 Employees
+          </div>
+        </div>
+
+        <!-- Employees Table Panel -->
+        <div class="panel">
+          <div class="panel-body no-padding">
+            <div id="employeesEmptyState" class="empty-state" style="display: none;">
+              <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              <div class="empty-title">No employees found</div>
+              <div class="empty-desc">No employees match your search query or none have been created yet.</div>
+              <button class="btn btn-primary btn-sm" onclick="openAddEmployeeModal()" style="margin-top: 14px;">+ Add First Employee</button>
+            </div>
+
+            <div class="table-responsive" id="employeesTableContainer">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Employee Name</th>
+                    <th>ID</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                    <th class="numeric">Monthly Salary</th>
+                    <th>Joining Date</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="employeesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Employee Modal -->
+  <div class="modal-backdrop" id="addEmployeeModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">Add New Employee Account</div>
+        <button class="modal-close" onclick="closeAddEmployeeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="addEmployeeForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="addEmpName">Full Name <span class="req">*</span></label>
+            <input type="text" id="addEmpName" class="form-control" placeholder="e.g. Bilal Ahmed">
+            <div id="addEmpNameError" class="field-error"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="addEmpEmail">Email Address <span class="req">*</span></label>
+              <input type="email" id="addEmpEmail" class="form-control" placeholder="bilal@company.com">
+              <div id="addEmpEmailError" class="field-error"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="addEmpDept">Department <span class="req">*</span></label>
+              <input type="text" id="addEmpDept" class="form-control" placeholder="e.g. Engineering, Sales, HR">
+              <div id="addEmpDeptError" class="field-error"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="addEmpDesignation">Designation / Title</label>
+              <input type="text" id="addEmpDesignation" class="form-control" placeholder="e.g. Frontend Developer">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="addEmpSalary">Monthly Salary ($) <span class="req">*</span></label>
+              <input type="number" id="addEmpSalary" class="form-control" placeholder="5000" min="1" step="50">
+              <div id="addEmpSalaryError" class="field-error"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="addEmpPhone">Phone Number</label>
+              <input type="text" id="addEmpPhone" class="form-control" placeholder="+1 555-0199">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="addEmpJoiningDate">Joining Date</label>
+              <input type="date" id="addEmpJoiningDate" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addEmpPassword">Login Password</label>
+            <input type="text" id="addEmpPassword" class="form-control" value="password" placeholder="Defaults to 'password'">
+            <div class="form-hint">The employee will use this password and their email to sign in to the Employee Portal.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddEmployeeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Employee Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Employee Modal -->
+  <div class="modal-backdrop" id="editEmployeeModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">Edit Employee Information</div>
+        <button class="modal-close" onclick="closeEditEmployeeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="editEmployeeForm">
+        <input type="hidden" id="editEmpId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="editEmpName">Full Name <span class="req">*</span></label>
+            <input type="text" id="editEmpName" class="form-control" required>
+            <div id="editEmpNameError" class="field-error"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="editEmpEmail">Email Address <span class="req">*</span></label>
+              <input type="email" id="editEmpEmail" class="form-control" required>
+              <div id="editEmpEmailError" class="field-error"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editEmpDept">Department <span class="req">*</span></label>
+              <input type="text" id="editEmpDept" class="form-control" required>
+              <div id="editEmpDeptError" class="field-error"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="editEmpDesignation">Designation</label>
+              <input type="text" id="editEmpDesignation" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editEmpSalary">Monthly Salary ($) <span class="req">*</span></label>
+              <input type="number" id="editEmpSalary" class="form-control" required min="1" step="50">
+              <div id="editEmpSalaryError" class="field-error"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="editEmpPhone">Phone Number</label>
+              <input type="text" id="editEmpPhone" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editEmpJoiningDate">Joining Date</label>
+              <input type="date" id="editEmpJoiningDate" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" id="deleteEmployeeModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" style="color: var(--danger);">Confirm Employee Removal</div>
+        <button class="modal-close" onclick="closeDeleteEmployeeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-primary); margin-bottom: 12px;">
+          Are you sure you want to permanently remove employee <strong id="deleteTargetName"></strong>?
+        </p>
+        <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45;">
+          This will revoke their portal login and clean up their associated attendance and leave logs to maintain database integrity.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteEmployeeModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Permanently Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/leave.js"></script>
+  <script src="js/employees.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/payslip.js"></script>
+  <script src="js/helper.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initEmployeesPage();
+    });
+  </script>
+</body>
+</html>

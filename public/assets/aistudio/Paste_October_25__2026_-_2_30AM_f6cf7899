@@ -1,0 +1,1116 @@
+# MASTER BUILD PROMPT: HCM LITE
+## Saylani Hackathon 2026 | Beginner Track
+
+### YOUR ROLE
+
+Act as a senior product designer, frontend engineer, JavaScript developer, UX specialist, and QA engineer. Your task is to build a complete, polished, professional Human Capital Management web application called **HCM Lite** for the Saylani Hackathon Beginner Track.
+
+You are not creating a generic dashboard, a landing page, or a static prototype. You are creating a functional HR application that a real company could plausibly use for basic employee administration, attendance, leave management, and payslips.
+
+The application must satisfy the official Beginner Track PDF requirements while achieving the highest possible score through correct functionality, accurate business rules, excellent UI/UX, clean code, and a convincing live demonstration.
+
+**The governing rule:** follow the supplied Beginner Track brief, not a more advanced version of the challenge.
+
+---
+
+# 1. NON-NEGOTIABLE TECHNICAL CONSTRAINTS
+
+Use ONLY:
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Browser `localStorage` for persistent data
+- Chart.js through a CDN, if charts are useful
+- Other small CDN libraries only when genuinely necessary and compatible with the beginner-track rules
+
+Do NOT use:
+
+- React
+- Next.js
+- Vue
+- Angular
+- Svelte
+- TypeScript
+- Tailwind CSS
+- Bootstrap
+- Node.js
+- Express
+- A backend server
+- A database server
+- A build system or framework
+
+The application must run as a straightforward collection of HTML, CSS, and JavaScript files.
+
+Use the following architecture:
+
+```text
+hcm-lite/
+├── index.html
+├── admin.html
+├── employees.html
+├── leaves.html
+├── settings.html
+├── employee.html
+├── payslip.html
+├── css/
+│   └── style.css
+├── js/
+│   ├── storage.js
+│   ├── auth.js
+│   ├── employees.js
+│   ├── attendance.js
+│   ├── leave.js
+│   ├── helper.js
+│   ├── dashboard.js
+│   ├── settings.js
+│   └── payslip.js
+├── assets/
+├── README.md
+└── .gitignore
+```
+
+You may add small, clearly named JavaScript files if necessary, but keep the project simple and understandable.
+
+Reuse shared functions rather than duplicating logic across pages.
+
+Do not convert this into a full-stack application. A real backend, real database, and hosted LLM integration are not required for this track.
+
+Important limitation: `localStorage` is browser-specific and is not secure against someone who can inspect or modify the browser's data. Treat this as a learning project, do not store real sensitive employee information, and do not describe it as production-secure.
+
+---
+
+# 2. PRODUCT VISION AND VISUAL IDENTITY
+
+Build HCM Lite as a professional, modern, understated enterprise HR product.
+
+The interface should look as if a thoughtful product designer created it for an actual company. It must not look like a typical AI-generated website.
+
+## 2.1 Design direction: Quiet Enterprise
+
+The desired aesthetic is:
+
+- Professional rather than flashy.
+- Refined rather than decorative.
+- Modern rather than futuristic.
+- Information-dense but readable.
+- Minimal without feeling empty.
+- Distinctive without becoming experimental.
+- Consistent across all seven pages.
+
+Take inspiration from the clarity, precision, and usability of high-quality workplace software. Do not directly copy an existing product.
+
+### Avoid generic AI-generated design
+
+Do not use:
+
+- Purple-blue gradients everywhere.
+- Glowing borders.
+- Excessive glassmorphism.
+- Giant rounded cards for every section.
+- Oversized headings on operational screens.
+- Random decorative circles and blobs.
+- A chatbot floating over important content.
+- Emojis as replacements for professional interface icons.
+- Fake activity feeds.
+- Fake analytics.
+- Excessive animation.
+- Random colors on every component.
+- A different visual style on each page.
+
+The design must feel intentionally art-directed.
+
+## 2.2 Brand palette
+
+Use a restrained forest-green and warm-neutral identity.
+
+```css
+:root {
+  --brand: #245C4F;
+  --brand-hover: #19483E;
+  --brand-soft: #E8F0EC;
+
+  --page-bg: #F6F6F2;
+  --surface: #FFFFFF;
+  --surface-muted: #F0F1EC;
+
+  --text-primary: #202824;
+  --text-secondary: #727A74;
+
+  --border: #E2E5DF;
+
+  --success: #287A53;
+  --success-soft: #E6F3EA;
+
+  --warning: #A66A18;
+  --warning-soft: #FBF0DA;
+
+  --danger: #B84242;
+  --danger-soft: #F9E8E6;
+
+  --info: #3E6B9A;
+  --info-soft: #E8EEF6;
+}
+```
+
+These colors are starting design tokens. Use them consistently and adjust only when necessary for contrast or usability.
+
+Keep the majority of the interface neutral. Use green for the main brand and primary actions, amber for warnings, and red for destructive actions or errors.
+
+## 2.3 Typography
+
+Use Inter or a similar professional sans-serif through a suitable font source, with system font fallbacks.
+
+Use:
+- Compact, clear page titles.
+- Readable section headings.
+- Consistent body text.
+- Smaller, muted metadata.
+- Tabular numerals for salaries, counts, and other numerical values.
+- Consistent font weights and line heights.
+
+Do not make every heading bold or oversized.
+
+## 2.4 Layout
+
+Build a reusable application shell with:
+
+- A slim desktop sidebar.
+- A restrained brand wordmark.
+- Clearly grouped navigation.
+- One consistent icon library, preferably Lucide icons through a CDN.
+- A clear active navigation state.
+- A compact workspace header.
+- Breadcrumbs where useful.
+- A page title and contextual description.
+- One clear primary action where appropriate.
+- A content area with consistent spacing.
+- A responsive mobile navigation drawer.
+
+Use consistent spacing and alignment. Tables should use available horizontal space efficiently. Do not turn every data table into a grid of cards on desktop.
+
+## 2.5 Signature details
+
+Create a recognizable identity through:
+
+- A simple typographic HCM Lite wordmark.
+- A distinctive forest-green accent.
+- Carefully designed employee identity rows.
+- Elegant attendance status labels.
+- Subtle section dividers.
+- Compact analytical summaries.
+- Clean tables and forms.
+- Thoughtful empty states.
+- A well-integrated smart helper.
+- A polished printable payslip.
+
+The goal is to make the interface feel professional because of its consistency, hierarchy, and detail, not because of excessive decoration.
+
+---
+
+# 3. APPLICATION STRUCTURE AND NAVIGATION
+
+Implement all seven pages from the official brief.
+
+### 1. `index.html` — Login and first-run setup
+
+Responsibilities:
+- Detect whether initial company setup has been completed.
+- Show the first-run setup when no company exists.
+- Create the company name and initial Admin account.
+- Provide login for Admin and Employees.
+- Validate credentials.
+- Store the active session.
+- Redirect users to the correct dashboard.
+
+### 2. `admin.html` — Admin dashboard
+
+Responsibilities:
+- Show company-level metrics.
+- Display today's attendance.
+- Show pending leave requests.
+- Provide access to employee management, leave approvals, settings, and payslips.
+- Display announcements.
+- Include the smart helper.
+
+### 3. `employees.html` — Employee management
+
+Responsibilities:
+- Add employees.
+- Automatically create their login accounts.
+- Edit employee details.
+- Delete employees with appropriate confirmation and related-record handling.
+- Search employees.
+- Filter by department.
+- Display employee status and essential information.
+- Validate all required fields.
+
+### 4. `leaves.html` — Leave management
+
+Responsibilities:
+- Display leave requests.
+- Filter by status and employee where appropriate.
+- Show leave type, date range, number of working days, reason, and request status.
+- Approve or reject requests.
+- Record an Admin comment.
+- Update the employee's leave balance based on approved requests.
+
+### 5. `settings.html` — Company settings
+
+Responsibilities:
+- Company name.
+- Office start time.
+- Grace period in minutes.
+- Yearly leave quota.
+- Working days.
+- Save settings persistently.
+- Validate settings before saving.
+
+### 6. `employee.html` — Employee dashboard
+
+Responsibilities:
+- Display personal attendance.
+- Check in and check out.
+- Show hours worked.
+- Show leave balance and request history.
+- Apply for leave.
+- Display announcements.
+- Include the personal smart helper.
+- Provide access to the employee's payslip.
+
+### 7. `payslip.html` — Monthly payslip
+
+Responsibilities:
+- Display the appropriate monthly salary slip.
+- Show employee details, salary, deductions, and net pay.
+- Allow printing or saving as PDF using the browser's print functionality.
+- Prevent employees from accessing another employee's payslip.
+
+All navigation links and buttons must lead to real, functional pages or actions.
+
+---
+
+# 4. DATA STORAGE ARCHITECTURE
+
+Create a reusable `js/storage.js` module that manages all `localStorage` operations.
+
+Use the exact primary storage keys specified in the brief:
+
+- `hcm_company`
+- `hcm_users`
+- `hcm_attendance`
+- `hcm_leaves`
+- `hcm_session`
+
+Additional keys may be used for announcements or other supported data, but keep the naming consistent.
+
+## Required stored data
+
+### Company
+
+Store:
+- Company name.
+- Office start time.
+- Grace minutes.
+- Yearly leave quota.
+- Working-day configuration.
+
+### Users
+
+Store the information required by the brief:
+- Unique ID.
+- Name.
+- Email.
+- Password or demo credential representation.
+- Role.
+- Department.
+- Salary.
+
+Additional employee fields can include phone number, designation, and joining date.
+
+### Attendance
+
+Store:
+- Unique record ID.
+- Employee ID.
+- Date.
+- Check-in time.
+- Check-out time.
+- Work duration.
+- Attendance status.
+
+### Leave requests
+
+Store:
+- Unique request ID.
+- Employee ID.
+- Leave type.
+- Start date.
+- End date.
+- Working-day count.
+- Reason.
+- Status.
+- Admin comment.
+- Request timestamp.
+
+### Session
+
+Store only the minimum information necessary to restore the current demo session, such as the user ID and role.
+
+Never store the complete password in the session.
+
+## Storage functions
+
+Implement reusable functions such as:
+
+```javascript
+getCompany()
+saveCompany(company)
+
+getUsers()
+saveUsers(users)
+
+getAttendance()
+saveAttendance(records)
+
+getLeaves()
+saveLeaves(requests)
+
+getSession()
+saveSession(session)
+clearSession()
+```
+
+Also implement:
+- Safe JSON parsing.
+- Default values when a key is missing.
+- Unique ID generation.
+- Storage error handling.
+- Data integrity checks.
+- Consistent date and time helpers.
+
+Do not directly scatter repeated `localStorage.getItem()` and `localStorage.setItem()` calls throughout every page.
+
+Never overwrite existing valid data with default values during normal page initialization.
+
+A fresh installation must start empty. Do not add pre-filled employees, attendance, leaves, or salaries just to make the dashboard look impressive.
+
+Provide an explicit reset mechanism only if useful for development or demonstration, and protect it with a clear confirmation.
+
+---
+
+# 5. AUTHENTICATION AND ROLE PROTECTION
+
+Implement two roles only:
+
+- Admin
+- Employee
+
+### Admin
+
+Admin can:
+- Manage company settings.
+- Add, edit, and delete employees.
+- View company attendance.
+- Approve or reject leave requests.
+- View company dashboards.
+- View employee payslips.
+- Post announcements.
+- Use the helper on company data.
+
+### Employee
+
+Employee can:
+- Log in and log out.
+- View their personal dashboard.
+- Check in and check out.
+- View their own attendance.
+- Apply for leave.
+- View their own leave balance and request history.
+- View their own payslip.
+- Read announcements.
+- Ask questions about their own data.
+
+### Access enforcement
+
+Every page must check the active session and role before rendering protected content.
+
+If an Employee attempts to open an Admin page, redirect them to their own dashboard. If no valid session exists, redirect to the login page.
+
+Also enforce authorization inside JavaScript functions that read or modify data. Hiding navigation items is not sufficient.
+
+Use employee IDs to scope personal records, not just the email address or a user-supplied URL parameter.
+
+When adding an employee, automatically create the corresponding login account. Validate email uniqueness across all users.
+
+Support logout and a change-password flow if feasible within the scope of the brief.
+
+**Security qualification:** because the project uses only browser storage and has no backend, role protection is appropriate for the learning demonstration but cannot be considered secure against a technically capable user who can edit local storage or JavaScript.
+
+Do not falsely claim server-side security or production-grade authentication.
+
+---
+
+# 6. EMPLOYEE MANAGEMENT
+
+Build a fully functional employee management interface.
+
+## Add employee form
+
+Fields:
+- Full name.
+- Email.
+- Department.
+- Salary.
+- Optional phone number.
+- Optional designation.
+- Optional joining date.
+
+Validate:
+- Required fields.
+- Valid email.
+- No duplicate email.
+- Salary greater than zero.
+- Correct input formats.
+
+Display validation errors next to the relevant fields. Do not use only generic alert boxes.
+
+On successful submission:
+1. Create a unique employee ID.
+2. Create the employee record and login credentials.
+3. Save the updated user list.
+4. Refresh the directory.
+5. Update relevant dashboard counts.
+6. Show success feedback only after the operation succeeds.
+
+## Directory
+
+Include:
+- Search by employee name or email.
+- Department filter.
+- Employee count.
+- Clear employee information.
+- Edit action.
+- Delete action.
+- Empty state when no employees exist.
+
+Use a professional table with a clean header, readable rows, subtle separators, and restrained hover states.
+
+Do not fabricate employee information.
+
+Deleting an employee must also handle their related records consistently. Use a confirmation dialog, and preserve appropriate data integrity rather than leaving broken references.
+
+---
+
+# 7. ATTENDANCE MANAGEMENT
+
+Implement actual check-in and check-out functionality.
+
+### Check-in
+
+- The employee can check in only once per working day.
+- Store the date and time.
+- Calculate status using the Admin's office start time and grace period.
+- Prevent duplicate records.
+- Update the employee dashboard and Admin attendance view.
+
+### Check-out
+
+- A check-out is allowed only after a check-in.
+- Prevent duplicate or invalid check-outs.
+- Calculate working duration.
+- Mark a half day when total working duration is less than five hours, following the brief's rules.
+- Update the stored record.
+
+### Status rules
+
+The brief defines:
+- Late when check-in is after office start time plus grace minutes.
+- One check-in per employee per day.
+- Check-out only after check-in.
+- Work duration equals check-out minus check-in.
+- Under five hours counts as a half day.
+- No attendance record on a working day means absent.
+
+Implement these rules consistently.
+
+For attendance displays, use clearly labeled statuses:
+- Present.
+- Late.
+- Half day.
+- Absent.
+- Not checked out.
+
+If an employee has checked in but not checked out, show that state accurately rather than inventing completed working hours.
+
+### Working days
+
+Use the configured company working-day settings consistently when calculating absences and payroll.
+
+Do not count a configured non-working day as an ordinary absence.
+
+Use one consistent date strategy to avoid records being assigned to the wrong day because of timezone conversion.
+
+---
+
+# 8. LEAVE MANAGEMENT
+
+Implement the complete leave request and approval process.
+
+Employees must be able to:
+- Select a leave type.
+- Choose start and end dates.
+- Enter a reason.
+- View the calculated working-day count.
+- Submit a request.
+- View its current status.
+- Review their remaining balance.
+
+Admin must be able to:
+- View all requests.
+- Approve a request.
+- Reject a request.
+- Enter a comment.
+- View the employee and request details.
+
+### Validation rules
+
+- The start date must be on or before the end date.
+- Count working days only.
+- Skip configured non-working days.
+- Prevent overlapping requests for the same employee.
+- Do not allow the yearly quota to be exceeded.
+- Do not count pending or rejected requests as approved leave.
+- Do not deduct leave balance multiple times for the same request.
+- Recalculate remaining balance from approved leave records.
+
+If the Admin changes the quota, use the new setting consistently for future calculations.
+
+Handle cancelled or rejected requests correctly.
+
+Provide helpful error messages for overlapping dates, invalid date ranges, and insufficient balance.
+
+Use a clear request status indicator and confirmation for consequential actions.
+
+---
+
+# 9. DASHBOARDS AND ANALYTICS
+
+All dashboard numbers must be computed from the stored application data.
+
+Never hardcode values such as 42 employees, 5 employees on leave, or 3 late arrivals.
+
+## Admin dashboard
+
+Include:
+- Total employees.
+- Present today.
+- On leave today.
+- Late today.
+- Pending leave requests.
+- Today's attendance overview.
+- Recent leave requests.
+- Department distribution if useful.
+- A compact attendance trend where enough records exist.
+- Announcements.
+- Smart helper.
+
+## Employee dashboard
+
+Include:
+- A greeting using the logged-in employee's name.
+- Current attendance status.
+- Check-in/check-out controls.
+- Hours worked today or this week.
+- Remaining leave balance.
+- Recent attendance history.
+- Recent leave requests.
+- Latest payslip access.
+- Announcements.
+- Personal smart helper.
+
+## Design rules
+
+Do not place every metric inside an identical large card.
+
+Use a deliberate hierarchy:
+- A compact row of key metrics.
+- One useful attendance visualization when data is available.
+- A readable operational table.
+- A pending-actions section.
+- A compact helper area.
+
+Empty datasets should show helpful empty states. For example, an empty attendance chart should explain that attendance records will appear after employees begin checking in.
+
+Use Chart.js only if it improves the interface. Charts must update when underlying records change and must never display fabricated values.
+
+---
+
+# 10. SMART HELPER: REQUIRED JAVASCRIPT IMPLEMENTATION
+
+The Beginner Track requires a smart helper that answers questions from actual app data.
+
+The required implementation is keyword matching in JavaScript. A hosted LLM is an optional bonus and must not be required for the application to function.
+
+Build the helper using `js/helper.js`.
+
+Create a compact, professional chat interface on both the Admin and Employee dashboards.
+
+The helper must understand the questions specified in the brief.
+
+## Admin questions
+
+**“How many employees do we have?”**
+
+Count the actual employee accounts in `hcm_users`.
+
+**“Who is on leave today?”**
+
+Read `hcm_leaves`, find approved leave requests that cover today's date, and return the actual employees and relevant leave types.
+
+**“Who was late today?”**
+
+Read today's attendance records and return the employees whose stored attendance status indicates lateness.
+
+## Employee questions
+
+**“How many leaves do I have left?”**
+
+Calculate the configured quota minus the employee's approved leave days for the relevant year.
+
+**“Was I late today?”**
+
+Check the current employee's attendance record.
+
+**“How many hours did I work this week?”**
+
+Calculate the sum of valid check-in/check-out durations for the logged-in employee during the current week.
+
+## Implementation requirements
+
+- Normalize question text to lowercase.
+- Match useful keywords and phrases.
+- Read actual values from the storage layer.
+- Use the current user's role and ID.
+- Scope Employee answers strictly to that employee's records.
+- Provide a polite fallback for unsupported questions.
+- Never return invented numbers.
+- Never expose another employee's salary or private records to an Employee.
+- Avoid crashes when the application contains no records.
+
+Use structured helper functions rather than one enormous chain of conditional statements.
+
+For example:
+
+```javascript
+function answerQuestion(question, user) {
+  const text = question.toLowerCase().trim();
+
+  // Identify the intent.
+  // Read actual application data.
+  // Enforce the user's data scope.
+  // Return a grounded answer.
+}
+```
+
+The code above is only a starting example. Implement the complete behavior.
+
+## Chat UI
+
+Include:
+- A compact message history.
+- A text input.
+- A send button.
+- Enter-key submission.
+- A loading or processing state if needed.
+- Clear user and assistant message styles.
+- A useful fallback message.
+- Suggested questions that are actually supported.
+
+The helper should look like part of the HR application, not a separate AI-themed product.
+
+Do not add a fake typing animation that implies a real model is thinking when the helper simply performs local keyword matching.
+
+Do not claim the application uses a real LLM unless an optional LLM integration has actually been implemented.
+
+---
+
+# 11. PAYSLIP AND PRINTING
+
+Build a polished monthly payslip page.
+
+Display:
+- Company name.
+- Payslip period.
+- Employee name.
+- Employee email or ID.
+- Department.
+- Monthly salary.
+- Working days in the month.
+- Absent days.
+- Half days.
+- Per-day salary.
+- Attendance deduction.
+- Net salary.
+
+Use the exact calculation rules from the Beginner Track brief.
+
+### Required formulas
+
+Per-day salary:
+
+`monthly salary ÷ working days in the month`
+
+Deduction:
+
+`per-day salary × (absent days + 0.5 × half days)`
+
+Net salary:
+
+`monthly salary − deduction`
+
+The Beginner Track does not specify tax calculations. Do not import the advanced-track tax slabs into this version.
+
+Handle zero working days safely and use sensible rounding for displayed money.
+
+### Printing
+
+Use a dedicated print stylesheet.
+
+When the user clicks Print / Save as PDF:
+- Hide the sidebar and navigation.
+- Hide unnecessary controls.
+- Display the payslip cleanly on a white background.
+- Prevent important information from being clipped.
+- Keep the printed document professional and readable.
+
+Use the browser's native print dialog. Do not claim to have generated a downloadable PDF file unless an actual PDF-generation implementation exists.
+
+Admin may view employee payslips. Employees may access only their own.
+
+---
+
+# 12. ANNOUNCEMENTS
+
+Implement a simple announcement feature.
+
+Admin can:
+- Create an announcement.
+- Enter a title and message.
+- Save it persistently.
+
+Employees can:
+- Read announcements.
+- See the publication date.
+- View the latest announcements on their dashboard.
+
+Use actual stored announcements. Do not show fabricated activity or fake notification counts.
+
+If there are no announcements, display a calm empty state.
+
+Keep this feature small and reliable rather than overengineering it.
+
+---
+
+# 13. RESPONSIVE DESIGN AND INTERACTION QUALITY
+
+The application must work on desktop, tablet, and mobile screens.
+
+Target a minimum viewport of 375 pixels.
+
+### Desktop
+- Sidebar and main workspace.
+- Compact metrics.
+- Professional tables.
+- Clear action placement.
+- Consistent page spacing.
+
+### Mobile
+- Collapsible navigation drawer.
+- Stacked dashboard sections.
+- Readable forms.
+- Touch-friendly buttons.
+- No clipped content.
+- Appropriate table overflow.
+- No horizontal scrolling across the entire page.
+
+### Forms
+- Visible labels.
+- Inline errors.
+- Clear focus states.
+- Helpful helper text.
+- Disabled and loading states where appropriate.
+- Confirmation for important actions.
+
+### Feedback
+Use a consistent toast or inline feedback system for successful and failed operations.
+
+Avoid using `alert()` for every action.
+
+### Accessibility
+- Use semantic HTML.
+- Label every form control.
+- Support keyboard navigation.
+- Provide visible focus indicators.
+- Maintain suitable contrast.
+- Do not rely on color alone to communicate status.
+- Use accessible dialogs.
+- Respect reduced-motion preferences.
+
+### Interactions
+Every button must perform the action it advertises.
+
+Do not leave:
+- Dead navigation links.
+- Empty buttons.
+- Fake search fields.
+- Nonfunctional filters.
+- Decorative controls that look interactive.
+- Forms that do not persist data.
+- Buttons that show success without completing the operation.
+
+---
+
+# 14. CODE QUALITY
+
+Keep the JavaScript readable and modular.
+
+Use:
+- Clear function names.
+- Small reusable functions.
+- Consistent naming.
+- Comments for non-obvious business rules.
+- Shared date and time helpers.
+- Shared storage utilities.
+- Shared UI helpers.
+- Centralized validation logic where practical.
+
+Avoid:
+- Duplicated business calculations.
+- Global variables without a clear reason.
+- One enormous JavaScript file.
+- Excessive nested conditions.
+- Unnecessary dependencies.
+- Silent error handling.
+- `eval()`.
+- Unsafe insertion of user-controlled content using `innerHTML`.
+
+Render user-supplied names, reasons, comments, and announcements safely using text content or appropriate escaping.
+
+Use appropriate validation for every input.
+
+Because this is a no-backend project, do not pretend browser-side validation is equivalent to server-side validation.
+
+Test the app in a real browser. If file-based navigation or storage restrictions cause issues, use a simple static development server that serves the existing files without introducing a backend application.
+
+---
+
+# 15. BONUS FEATURES: UP TO 10 POINTS
+
+The brief lists optional bonuses. Complete the required functionality first.
+
+Potential bonuses include:
+
+1. Camera check-in using `getUserMedia()`.
+2. Geolocation checks using `navigator.geolocation`.
+3. Face detection through a suitable CDN library.
+4. Chart.js visualizations.
+5. Dark mode.
+6. Attendance CSV export.
+7. Printable monthly attendance report.
+
+## Bonus priority
+
+After the required application is stable, prioritize:
+- CSV attendance export.
+- A polished, accurate chart.
+- A functional dark mode.
+
+These are reasonable additions that fit the beginner-track stack.
+
+Attempt camera attendance only if time permits and browser permissions can be tested reliably. Camera and geolocation functionality require HTTPS or an appropriate local development context, and they may not work in every embedded browser.
+
+If face detection is added, distinguish face detection from identity verification. Do not claim that a face has been matched to a particular employee unless identity matching is actually implemented.
+
+Do not sacrifice core features for bonus points.
+
+---
+
+# 16. TESTING AND ACCEPTANCE CRITERIA
+
+Test the application from a fresh browser state.
+
+## Setup and login
+- First-run setup appears when no company exists.
+- Admin account is created successfully.
+- Login works with valid credentials.
+- Invalid credentials are rejected.
+- Logout works.
+- Employee login redirects to the employee dashboard.
+- Employees cannot open Admin pages through normal navigation.
+
+## Employees
+- Adding an employee creates a usable account.
+- Duplicate email is rejected.
+- Invalid email is rejected.
+- Salary must be greater than zero.
+- Search works.
+- Department filtering works.
+- Editing updates stored data.
+- Deleting handles related records consistently.
+
+## Attendance
+- Check-in works.
+- Duplicate check-in is rejected.
+- Check-out requires a check-in.
+- Duplicate check-out is rejected.
+- Late status follows the configured office time and grace period.
+- Half-day calculation works.
+- Dashboard values update after attendance changes.
+- No-record absence calculations respect working days.
+
+## Leave
+- Valid leave request can be submitted.
+- Invalid date ranges are rejected.
+- Overlapping requests are rejected.
+- Working days are calculated correctly.
+- Quota limits are respected.
+- Admin approval updates the employee's balance.
+- Rejected leave does not reduce approved leave balance.
+- The comment is saved.
+
+## Smart helper
+- Employee count matches the stored records.
+- Today's leave answers match approved requests.
+- Late-arrival answers match attendance.
+- Personal leave balance is correct.
+- Weekly hours are calculated from real attendance.
+- Employees cannot retrieve other employees' private information.
+- Unsupported questions receive a sensible fallback.
+
+## Payslip
+- Per-day salary is correct.
+- Absence deduction is correct.
+- Half-day deduction is correct.
+- Net salary is correct.
+- Admin and Employee access rules are respected.
+- Printing works.
+
+## UI
+- All seven pages load.
+- All links and buttons work.
+- No major JavaScript errors occur.
+- Layout works at desktop and mobile sizes.
+- Empty states are useful.
+- Forms show errors near the relevant fields.
+- Print layout is clean.
+
+Run the available checks and fix all discovered defects. Do not claim that a feature or test works unless it has actually been verified.
+
+---
+
+# 17. DEMONSTRATION STRATEGY
+
+Prepare the application for the five-minute hackathon demonstration.
+
+**Minute 1: Setup and Admin login**
+- Open the fresh application.
+- Set the company name.
+- Create the Admin account.
+- Configure attendance settings.
+
+**Minute 2: Add an employee**
+- Create an employee with a valid email and salary.
+- Demonstrate that the employee receives a usable login.
+- Sign in as the employee.
+
+**Minute 3: Attendance and leave**
+- Check in.
+- Demonstrate the employee's attendance record.
+- Submit a leave request.
+- Return to Admin and approve or reject it.
+
+**Minute 4: Dashboard and smart helper**
+- Show that dashboard values update.
+- Ask how many employees exist.
+- Ask who is on leave today.
+- Sign in as Employee and ask for the personal leave balance.
+
+**Minute 5: Payslip and finish**
+- Display the monthly payslip.
+- Print or save it as PDF.
+- Demonstrate role restrictions.
+- Briefly explain the architecture and limitations.
+
+Use actual actions during the demonstration. Do not manually alter local storage or hardcode numbers to manufacture the results.
+
+---
+
+# 18. README AND SUBMISSION
+
+Create a clear README containing:
+
+- Project name and purpose.
+- Technologies used.
+- Folder structure.
+- How to run the application.
+- First-run setup instructions.
+- How to create an Admin account.
+- How to add and log in as an Employee.
+- How to test attendance and leave.
+- How to use the smart helper.
+- How to print a payslip.
+- How to deploy the static application.
+- What is implemented.
+- Known limitations, especially the browser-only storage model.
+
+Keep the project compatible with static hosting options mentioned in the brief, such as GitHub Pages, Netlify, or Vercel.
+
+Never commit real employee credentials or private information.
+
+Provide the repository link and the hosted application link for submission through the Saylani LMS.
+
+Do not claim a repository or deployment exists unless it has actually been created.
+
+---
+
+# 19. FINAL EXECUTION INSTRUCTIONS
+
+Now build the application in the current working environment.
+
+Follow this order:
+
+1. Inspect the repository and preserve any useful existing work.
+2. Establish the visual system and shared application shell.
+3. Implement first-run setup, storage utilities, and authentication.
+4. Implement employee management.
+5. Implement attendance.
+6. Implement leave requests and Admin approvals.
+7. Implement dashboards and live metrics.
+8. Implement the JavaScript smart helper.
+9. Implement payslip calculations and printing.
+10. Implement announcements.
+11. Add responsive behavior and accessibility.
+12. Add bonus features only after core requirements work.
+13. Test all workflows from a fresh installation.
+14. Fix bugs, document the project, and prepare deployment.
+
+Do not stop after generating the dashboard or the first page. Complete the seven-page application and connect the workflows.
+
+If the environment allows you to create files, edit code, run commands, and open a browser, perform those actions directly. If a dependency is missing, identify the problem and continue with the simplest compatible alternative.
+
+At completion, provide:
+- A summary of implemented features.
+- The exact testing performed and its results.
+- Any incomplete requirements.
+- Instructions to run the app.
+- Instructions to deploy it.
+- The final demo sequence.
+
+## Definition of success
+
+HCM Lite should look like a professional, carefully designed enterprise HR tool. It should use only the technologies permitted by the Beginner Track, save and retrieve real browser-stored data, calculate attendance and leave correctly, display accurate payslips, enforce the specified role restrictions within the demo, and answer supported smart-helper questions using real application records.
+
+**Prioritize the rubric in this order: working features, correct business rules, reliable smart helper, excellent responsive UI, clean code, and a reproducible demonstration.**
+
+Do not substitute visual polish for working functionality. Build the complete application, verify it, and only then declare it ready.
